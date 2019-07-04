@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <cstring>
 #include<fstream>
 using namespace std;
@@ -9,7 +9,7 @@ unsigned char memory[memspace];
 int offset;
 int rs1, rs2, res, rd_index, inst, imm, func3, func7;
 //unsigned int urs1, urs2;
-int debugc = 0;
+//int debugc = 0;
 int signedextend(int x, int bits)
 {
 	if (x>> (bits-1) == 1)
@@ -27,13 +27,13 @@ void read()
 	//	exit(0);
 	//}
 
-	FILE *file;
+	/*FILE *file;
 	file = fopen("testdata.data", "r");
 	if (file == NULL)
 	{
 		cout << "打开文件错误!" << endl;
 		exit(0);
-	}
+	}*/
 	char ch;
 	int a = 0;
 	int b = 0;
@@ -43,14 +43,14 @@ void read()
 	{
 		s[i] = s[i - 1] * 16;
 	}
-	while (fread(&ch,sizeof(char),1,file)==1)
+	while (cin.get(ch))
 	{
 		if (ch == '@')
 		{
 			int tmp = 0;
 			for (int i = 7; i >= 0; --i)
 			{
-				fread(&ch, sizeof(char), 1, file);
+				cin.get(ch);
 				tmp += (ch-'0') * s[i];
 			}
 			offset = tmp;
@@ -91,7 +91,7 @@ void read()
 			continue;
 		}
 	}
-	fclose(file);
+	//fclose(file);
 }
 void IF()
 {
@@ -107,7 +107,7 @@ void IF()
 		inst += k * (int)memory[index + i];
 	}
 	pc += 4;
-	cout << "line " << debugc++ << '\n';
+	//cout << "line " << debugc++ << '\n';
 	return;
 }
 void ID()

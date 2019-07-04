@@ -18,13 +18,13 @@ int signedextend(int x, int bits)
 }
 void read()
 {
-	FILE *file;
+	/*FILE *file;
 	file = fopen("testdata.data", "r");
 	if (file == NULL)
 	{
 		cout << "打开文件错误!" << endl;
 		exit(0);
-	}
+	}*/
 	char ch;
 	int a = 0;
 	int b = 0;
@@ -34,16 +34,16 @@ void read()
 	{
 		s[i] = s[i - 1] * 16;
 	}
-	//while (cin.get(ch))
-	while(fread(&ch,sizeof(char),1,file))
+	while (cin.get(ch))
+	//while(fread(&ch,sizeof(char),1,file))
 	{
 		if (ch == '@')
 		{
 			int tmp = 0;
 			for (int i = 7; i >= 0; --i)
 			{
-				//cin.get(ch);
-				fread(&ch, sizeof(char), 1, file);
+				cin.get(ch);
+				//fread(&ch, sizeof(char), 1, file);
 				tmp += (ch-'0') * s[i];
 			}
 			offset = tmp;
@@ -84,7 +84,7 @@ void read()
 			continue;
 		}
 	}
-	fclose(file);
+	//fclose(file);
 }
 void IF()
 {

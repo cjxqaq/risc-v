@@ -8,7 +8,7 @@ unsigned char memory[memspace];
 int offset;
 int rs1, rs2, res, rd_index, inst, imm, func3, func7;
 //unsigned int urs1, urs2;
-int debugc = 0;
+//int debugc = 0;
 int signedextend(int x, int bits)
 {
 	if (x>> (bits-1) == 1)
@@ -101,7 +101,7 @@ void IF()
 		inst += k * (int)memory[index + i];
 	}
 	pc += 4;
-	cout << "line " << debugc++ << '\n';
+	//cout << "line " << debugc++ << '\n';
 	return;
 }
 void ID()

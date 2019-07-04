@@ -5,11 +5,19 @@ using namespace std;
 const int memspace = 0x3fffff;
 int pc;
 int r[32];
-char memory[memspace];
+unsigned char memory[memspace];
 int offset;
 int rs1, rs2, res, rd_index, inst, imm, func3, func7;
 //unsigned int urs1, urs2;
 int debugc = 0;
+int signedextend(int x, int bits)
+{
+	if (x>> (bits-1) == 1)
+	{
+		x |= ((0xffffffff >> bits) << bits);
+	}
+	return x;
+}
 void read()
 {
 	//ifstream file("testdata.data");
@@ -18,6 +26,7 @@ void read()
 	//	cout << "打开文件错误!" << endl;
 	//	exit(0);
 	//}
+
 	FILE *file;
 	file = fopen("testdata.data", "r");
 	if (file == NULL)
@@ -28,6 +37,12 @@ void read()
 	char ch;
 	int a = 0;
 	int b = 0;
+	int s[10];
+	s[0] = 1;
+	for (int i = 1; i <= 8; ++i)
+	{
+		s[i] = s[i - 1] * 16;
+	}
 	while (fread(&ch,sizeof(char),1,file)==1)
 	{
 		if (ch == '@')
@@ -36,7 +51,7 @@ void read()
 			for (int i = 7; i >= 0; --i)
 			{
 				fread(&ch, sizeof(char), 1, file);
-				tmp += (ch-'0') * (1 << i);
+				tmp += (ch-'0') * s[i];
 			}
 			offset = tmp;
 			continue;
@@ -70,7 +85,7 @@ void read()
 			}
 			else
 			{
-				a += (ch - 'A');
+				a += (ch - 'A'+10);
 				memory[offset++] = (char)a;
 			}
 			continue;
@@ -92,7 +107,7 @@ void IF()
 		inst += k * (int)memory[index + i];
 	}
 	pc += 4;
-	cout << "line " << debugc++ << endl;
+	cout << "line " << debugc++ << '\n';
 	return;
 }
 void ID()
@@ -114,24 +129,27 @@ void ID()
 		rs1 = r[(inst >> 15) & 31];
 		rd_index = (inst >> 7) & 31;
 		func3 = (inst >> 12) & 7;
+		imm = signedextend(imm, 12);
 		return;
 	}
 	case 35://s-type
 	{
 		imm = inst >> 25;
-		imm = imm << 5 + ((inst >> 7) & 31);
+		imm = (imm << 5 )+ ((inst >> 7) & 31);
 		rs2 = r[(inst >> 20) & 31];
 		rs1 = r[(inst >> 15) & 31];
 		func3 = (inst >> 12) & 7;
+		imm = signedextend(imm, 12);
 		return;
 	}
 	case 99://b-type
 	{
 		imm = inst >> 31;
-		imm = imm << 1 + ((inst >> 7) & 1);
-		imm = imm << 6 + ((inst >> 25) & 63);
-		imm = imm << 4 + ((inst >> 7) & 15);
+		imm = (imm << 1) + ((inst >> 7) & 1);
+		imm = (imm << 6 )+ ((inst >> 25) & 63);
+		imm = (imm << 4 )+ ((inst >> 8) & 15);
 		imm <<= 1;
+		imm = signedextend(imm, 13);
 		rs2 = r[(inst >> 20) & 31];
 		rs1 = r[(inst >> 15) & 31];
 		func3 = (inst >> 12) & 7;
@@ -142,14 +160,18 @@ void ID()
 		imm = inst >> 12;
 		imm <<= 12;
 		rd_index = (inst >> 7) & 31;
+		return;
 	}
 	case 111://j-type
 	{
-		imm = inst >> 31;
-		imm = imm << 8 + (inst >> 12) & 255;
-		imm = imm << 1 + (inst >> 20) & 1;
-		imm = imm << 10 + (inst >> 21) & 1023;
+		imm = ((inst >> 31)&1);
+		imm = (imm << 8) + ((inst >> 12) & 255);
+		imm = (imm << 1) + ((inst >> 20) & 1);
+		imm = (imm << 10) + ((inst >> 21) & 1023);
+		imm <<= 1;
 		rd_index = (inst >> 7) & 31;
+		imm = signedextend(imm, 21);
+		return;
 	}
 	case 19://?-type
 	{
@@ -169,11 +191,12 @@ void ID()
 			rs1 = r[(inst >> 15) & 31];
 			rd_index = (inst >> 7) & 31;
 			func3 = (inst >> 12) & 7;
+			imm = signedextend(imm, 12);
 			return;
 		}
 	}
 	default:
-		cout << "ID error!";
+		cout << "ID error:" << (inst & 0x7f) << endl;
 		return;
 	}
 }
@@ -331,14 +354,13 @@ void EX()
 	}
 	case 23://(u-type)auipc
 	{
-		pc = pc - 4 + imm;
-		res = pc;
+		res = pc - 4 + imm;
 		return;
 	}
 	case 111://(j-type)jal
 	{
 		res = pc;
-		pc = pc + imm;
+		pc = pc + imm - 4;
 		return;
 	}
 	case 19://with constant
@@ -419,13 +441,13 @@ void MEM()
 		}
 		case 1://lh
 		{
-			res = memory[res] + memory[res + 1] << 8;
-			if (res & 0x80) res |= 0xffffff00;
+			res = memory[res] + (memory[res + 1] << 8);
+			res = signedextend(res, 16);
 			return;
 		}
 		case 2://lw
 		{
-			res = memory[res] + memory[res + 1] << 8 + memory[res + 2] << 16 + memory[res + 3] << 24;
+			res = memory[res] +( memory[res + 1] << 8 )+ (memory[res + 2] << 16) + (memory[res + 3] << 24);
 			return;
 		}
 		case 4://lbu
@@ -435,7 +457,7 @@ void MEM()
 		}
 		case 5://lhu
 		{
-			res = memory[res] + memory[res + 1] << 8;
+			res = memory[res] + (memory[res + 1] << 8);
 			return;
 		}
 		default:
@@ -447,26 +469,26 @@ void MEM()
 	{
 		if (func3 == 0)//sb
 		{
-			memory[res] = rs2 & 127;
+			memory[res] = rs2 & 255;
 			if (res == 0x30004)
 			{
-				cout << memory[res];
-				exit(0);
+				//cout << r[10]<<'\n';
+				exit(r[10]);
 			}
 			return;
 		}
 		if (func3 == 1)//sh;
 		{
-			memory[res] = rs2 & 127;
-			memory[res + 1] = (rs2 >> 8) & 127;
+			memory[res] = rs2 & 255;
+			memory[res + 1] = (rs2 >> 8) & 255;
 			return;
 		}
 		if (func3 == 2)//sw
 		{
-			memory[res] = rs2 & 127;
-			memory[res + 1] = (rs2 >> 8) & 127;
-			memory[res + 2] = (rs2 >> 16) & 127;
-			memory[res + 3] = (rs2 >> 24) & 127;
+			memory[res] = rs2 & 255;
+			memory[res + 1] = (rs2 >> 8) & 255;
+			memory[res + 2] = (rs2 >> 16) & 255;
+			memory[res + 3] = (rs2 >> 24) & 255;
 			return;
 		}
 		cout << "error: MEM store";
@@ -482,6 +504,7 @@ void WB()
 	case 99:case 35://store and b-type
 		return;
 	default:
+		if (rd_index == 0)return;
 		r[rd_index] = res;
 		return;
 	}
@@ -497,6 +520,11 @@ int main()
 		EX();
 		MEM();
 		WB();
+		/*if (r[0] != 0)
+		{
+			cout << "r[0]error\n";
+			return -1;
+		}*/
 	}
 }
 

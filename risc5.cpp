@@ -1,5 +1,4 @@
 #include <iostream>
-#include<stdlib.h>
 using namespace std;
 const int memspace = 0x3fffff;
 int pc;
@@ -8,7 +7,7 @@ unsigned char memory[memspace];
 int offset;
 int rs1, rs2, res, rd_index, inst, imm, func3, func7;
 //unsigned int urs1, urs2;
-//int debugc = 0;
+int debugc = 0;
 int signedextend(int x, int bits)
 {
 	if (x>> (bits-1) == 1)
@@ -19,13 +18,13 @@ int signedextend(int x, int bits)
 }
 void read()
 {
-	/*FILE *file;
+	FILE *file;
 	file = fopen("testdata.data", "r");
 	if (file == NULL)
 	{
 		cout << "打开文件错误!" << endl;
 		exit(0);
-	}*/
+	}
 	char ch;
 	int a = 0;
 	int b = 0;
@@ -35,14 +34,16 @@ void read()
 	{
 		s[i] = s[i - 1] * 16;
 	}
-	while (cin.get(ch))
+	//while (cin.get(ch))
+	while(fread(&ch,sizeof(char),1,file))
 	{
 		if (ch == '@')
 		{
 			int tmp = 0;
 			for (int i = 7; i >= 0; --i)
 			{
-				cin.get(ch);
+				//cin.get(ch);
+				fread(&ch, sizeof(char), 1, file);
 				tmp += (ch-'0') * s[i];
 			}
 			offset = tmp;
@@ -83,7 +84,7 @@ void read()
 			continue;
 		}
 	}
-	//fclose(file);
+	fclose(file);
 }
 void IF()
 {
@@ -99,7 +100,7 @@ void IF()
 		inst += k * (int)memory[index + i];
 	}
 	pc += 4;
-	//cout << "line " << debugc++ << '\n';
+	cout << "line " << debugc++ << '\n';
 	return;
 }
 void ID()
@@ -188,7 +189,13 @@ void ID()
 		}
 	}
 	default:
-		cout << "ID error:" << (inst & 0x7f) << endl;
+		if (inst == 0)
+		{
+			cout << r[10];
+			//exit(r[10]);
+			exit(0);
+		}
+		//cout << "ID error:" << (inst & 0x7f) << endl;
 		return;
 	}
 }
@@ -464,7 +471,7 @@ void MEM()
 			memory[res] = rs2 & 255;
 			if (res == 0x30004)
 			{
-				cout << (r[10]&255);
+				cout << r[10];
 				//exit(r[10]);
 				exit(0);
 			}

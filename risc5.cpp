@@ -1,6 +1,4 @@
 #include <iostream>
-#include <cstring>
-#include<fstream>
 using namespace std;
 const int memspace = 0x3fffff;
 int pc;
@@ -20,13 +18,6 @@ int signedextend(int x, int bits)
 }
 void read()
 {
-	//ifstream file("testdata.data");
-	//if (file.fail())
-	//{
-	//	cout << "打开文件错误!" << endl;
-	//	exit(0);
-	//}
-
 	/*FILE *file;
 	file = fopen("testdata.data", "r");
 	if (file == NULL)
@@ -472,8 +463,9 @@ void MEM()
 			memory[res] = rs2 & 255;
 			if (res == 0x30004)
 			{
-				//cout << r[10]<<'\n';
-				exit(r[10]);
+				cout << r[10];
+				//exit(r[10]);
+				exit(0);
 			}
 			return;
 		}

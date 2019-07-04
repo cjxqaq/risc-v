@@ -1,1 +1,2 @@
-g++ risc5.cpp -o code -O2
+code:risc5.cpp
+  g++ risc5.cpp -o code -O2

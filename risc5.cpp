@@ -481,7 +481,7 @@ void MEM()
 			memory[res] = rs2 & 255;
 			if (res == 0x30004)
 			{
-				cout << r[10];
+				cout << (unsigned)(r[10]&255);
 				exit(0);
 			}
 			return;

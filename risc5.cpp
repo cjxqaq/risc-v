@@ -7,8 +7,6 @@ int r[32];
 unsigned char memory[memspace];
 int offset;
 int rs1, rs2, res, rd_index, inst, imm, func3, func7;
-//unsigned int urs1, urs2;
-//int debugc = 0;
 int signedextend(int x, int bits)
 {
 	if (x>> (bits-1) == 1)
@@ -108,7 +106,6 @@ void IF()
 	cout << "rs1: " << dec << ((inst >> 15) & 31) << '\n';
 	cout << "rd: " << dec << ((inst >> 7) & 31) << '\n';*/
 	pc += 4;
-	//cout << "line " << debugc++ << '\n';
 	return;
 }
 void ID()
@@ -490,11 +487,7 @@ void MEM()
 		{
 			memory[res] = rs2 & 255;
 			memory[res + 1] = (rs2 >> 8) & 255;
-			/*if (res == 0x30004)
-			{
-				cout << r[10];
-				exit(0);
-			}*/
+			
 			return;
 		}
 		if (func3 == 2)//sw
@@ -503,11 +496,7 @@ void MEM()
 			memory[res + 1] = (rs2 >> 8) & 255;
 			memory[res + 2] = (rs2 >> 16) & 255;
 			memory[res + 3] = (rs2 >> 24) & 255;
-			/*if (res == 0x30004)
-			{
-				cout << r[10];
-				exit(0);
-			}*/
+			
 			return;
 		}
 		cout << "error: MEM store";
@@ -540,10 +529,6 @@ int main()
 		EX();
 		MEM();
 		WB();
-		if (pc == 0x10b8)
-		{
-			continue;
-		}
 	}
 }
 
